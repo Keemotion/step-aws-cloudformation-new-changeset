@@ -10,23 +10,19 @@ In your [wercker.yml](http://devcenter.wercker.com/articles/werckeryml/) file un
 deploy:
   steps:
     - create-changeset:
-        template_url: "https://s3.amazonaws.com/cloudformation-templates-us-east-1/WordPress_Single_Instance_With_RDS.template"
+        template_path: "mydir/stack.yml"
+        stack: my_cf_stack
 ```
 
 ## Options
 
-* `action` (optional, default: `"create-stack"`) Specifies which action to run
-  via the command. Supported actions are:
-    * `create-stack`
-    * `update-stack`
-    * `delete-stack`
-* `wait` (required) Determines whether to wait until the task is complete
+* `wait` (optional) Determines whether to wait until the task is complete
 * `aws_access_key_id` (optional)
 * `aws_secret_access_key` (optional)
 * `region` (optional, default: `"us-east-1"`)
-* `stack` (optional, default: `"wercker-$WERCKER_BUILD_ID"`)
-* `template_body` (optional) cloudformation file as a string
-* `template_url` (optional) URL of a cloudformation file.
+* `stack` (required)
+* `changeset` (optional, default: `"wercker-$WERCKER_BUILD_ID"`)
+* `template_path` (required) path to the cloudformation stack file to deploy
 * `parameters` (optional) They have to be specified as one or more key-value
    pairs, with multiple values separated by a space. Like so:
    "ParameterKey=InstanceType,ParameterValue=m3.large

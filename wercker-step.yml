@@ -6,7 +6,7 @@ keywords:
 properties:
   wait:
     type: string
-    required: true
+    required: false
     default: "true"
   aws_access_key_id:
     type: string
