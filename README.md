@@ -1,6 +1,6 @@
 # aws cloudformation
 
-A wercker step to create CloudFormation changesets.
+A wercker step to create CloudFormation changesets. (require `awscli` to be installed)
 
 ## Example Usage
 

@@ -28,17 +28,10 @@ fi
 
 # First make sure aws is installed
 if ! type aws &> /dev/null ; then
-  info "awscli is not installed, trying to install through pip"
-  if ! type pip &> /dev/null ; then
-    fail "pip not found, make sure you have pip or awscli installed"
-  else
-    info "pip is available"
-    debug "pip verstion is: $(pip --version)"
-    pip install awscli
-  fi
+  fail "awscli not found"
 else
   info "awscli is available"
-  debug "awscli version: $(aws --version)"
+  aws --version
 fi
 
 declare -x WERCKER_AWS_CLOUDFORMATION_CHANGESET_TEMPLATE_ARG="--template-body file://$WERCKER_AWS_CLOUDFORMATION_CHANGESET_TEMPLATE_PATH"
@@ -49,7 +42,7 @@ else
   declare -x WERCKER_AWS_CLOUDFORMATION_CHANGESET_CAPABILITY_ARG=""
 fi
 
-echo aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation create-change-set \
+aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation create-change-set \
   --stack-name "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK" \
   $WERCKER_AWS_CLOUDFORMATION_CHANGESET_TEMPLATE_ARG \
   --parameters $WERCKER_AWS_CLOUDFORMATION_CHANGESET_PARAMETERS \
@@ -59,13 +52,13 @@ echo aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation 
 CHANGESETSTATUS="CREATE_IN_PROGRESS"
 
 if [ "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_WAIT" == "true" ]; then
-  while [ "$CHANGESETSTATUS" == *CREATE_IN_PROGRESS ]; do
-    TMPRESULT=$(aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation list-change-set --stack-name $WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK)
-    CHANGESETSTATUS=$(echo "$TMPRESULT" | python -c 'import json,sys,os;obj=json.load(sys.stdin);changeset=[s["Status"] for s in obj["StackSummaries"] if s["ChangeSetName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_CHANGESET")];print changeset[0]')
+  while [ "$CHANGESETSTATUS" == "CREATE_IN_PROGRESS" ]; do
+    TMPRESULT=$(aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation list-change-sets --stack-name $WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK)
+    CHANGESETSTATUS=$(echo "$TMPRESULT" | python -c 'import json,sys,os;obj=json.load(sys.stdin);changeset=[s["Status"] for s in obj["Summaries"] if s["ChangeSetName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_CHANGESET")];print changeset[0]')
     echo "$CHANGESETSTATUS"
-    if [ "$CHANGESETSTATUS" == *CREATE_COMPLETE ]; then
+    if [ "$CHANGESETSTATUS" == "CREATE_COMPLETE" ]; then
       return 0
-    elif [ "$CHANGESETSTATUS" == *FAILED ]; then
+    elif [ "$CHANGESETSTATUS" == "FAILED" ]; then
       return 1
     fi
     info "Waiting for launch, checking again in 10 seconds..."

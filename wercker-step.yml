@@ -26,7 +26,7 @@ properties:
   changeset:
     type: string
     required: false
-    default: "wercker-$WERCKER_BUILD_ID"
+    default: "wercker-$WERCKER_RUN_ID"
   template_path:
     type: string
     required: true
