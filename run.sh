@@ -42,20 +42,23 @@ else
   declare -x WERCKER_AWS_CLOUDFORMATION_CHANGESET_CAPABILITY_ARG=""
 fi
 
-aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation create-change-set \
-  --stack-name "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK" \
+CMD="aws --region \"$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION\" cloudformation create-change-set \
+  --stack-name \"$WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK\" \
   $WERCKER_AWS_CLOUDFORMATION_CHANGESET_TEMPLATE_ARG \
   --parameters $WERCKER_AWS_CLOUDFORMATION_CHANGESET_PARAMETERS \
   $WERCKER_AWS_CLOUDFORMATION_CHANGESET_CAPABILITY_ARG \
-  --change-set-name $WERCKER_AWS_CLOUDFORMATION_CHANGESET_CHANGESET
+  --change-set-name $WERCKER_AWS_CLOUDFORMATION_CHANGESET_CHANGESET"
+debug $CMD
+eval $CMD
 
 CHANGESETSTATUS="CREATE_IN_PROGRESS"
 
 if [ "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_WAIT" == "true" ]; then
   while [ "$CHANGESETSTATUS" == "CREATE_IN_PROGRESS" ]; do
     TMPRESULT=$(aws --region "$WERCKER_AWS_CLOUDFORMATION_CHANGESET_REGION" cloudformation list-change-sets --stack-name $WERCKER_AWS_CLOUDFORMATION_CHANGESET_STACK)
-    CHANGESETSTATUS=$(echo "$TMPRESULT" | python -c 'import json,sys,os;obj=json.load(sys.stdin);changeset=[s["Status"] for s in obj["Summaries"] if s["ChangeSetName"] == os.environ.get("WERCKER_AWS_CLOUDFORMATION_CHANGESET")];print changeset[0]')
-    echo "$CHANGESETSTATUS"
+    CMD="echo \"$TMPRESULT\" | python -c 'import json,sys,os;obj=json.load(sys.stdin);changeset=[s[\"Status\"] for s in obj[\"Summaries\"] if s[\"ChangeSetName\"] == os.environ.get(\"WERCKER_AWS_CLOUDFORMATION_CHANGESET\")];print changeset[0]')"
+    debug $CMD
+    CHANGESETSTATUS=`$CMD`
     if [ "$CHANGESETSTATUS" == "CREATE_COMPLETE" ]; then
       return 0
     elif [ "$CHANGESETSTATUS" == "FAILED" ]; then
