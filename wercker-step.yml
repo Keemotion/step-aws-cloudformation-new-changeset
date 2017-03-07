@@ -1,0 +1,41 @@
+name: aws-cloudformation-changeset
+version: 0.1.0
+description: Create a AWS CloudFormation changeset
+keywords:
+  - aws
+properties:
+  wait:
+    type: string
+    required: true
+    default: "true"
+  aws_access_key_id:
+    type: string
+    required: false
+    default: ""
+  aws_secret_access_key:
+    type: string
+    required: false
+    default: ""
+  region:
+    type: string
+    required: false
+    default: "us-east-1"
+  stack:
+    type: string
+    required: true
+  changeset:
+    type: string
+    required: false
+    default: "wercker-$WERCKER_BUILD_ID"
+  template_path:
+    type: string
+    required: true
+    default: ""
+  parameters:
+    type: string
+    required: false
+    default: ""
+  capabilities:
+    type: string
+    required: false
+    default: ""
